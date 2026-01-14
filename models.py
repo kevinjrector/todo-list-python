@@ -10,6 +10,6 @@ class Task(Base):
     completed = sa.Column(sa.Boolean, default=False, index=True, nullable=False)
     created_at = sa.Column(sa.DateTime, server_default=sa.func.now(), nullable=False)
     updated_at = sa.Column(sa.DateTime, server_default=sa.func.now(), nullable=False)
-    
+    delete_at = sa.Column(sa.DateTime, index=True, nullable=True)
     
 

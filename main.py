@@ -48,3 +48,54 @@ def get_task(task_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
     
     return task
+
+@app.put("/tasks/{task_id}", response_model=TaskResponse)
+def update_task(task_id: int, task_update: TaskUpdate, db: Session = Depends(get_db)):
+    
+    task = db.query(Task).filter(Task.id == task_id).first()
+    
+    if not task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    
+    update_data = task_update.dict(exclude_unset=True)
+    
+    for key, value in update_data.items():
+        setattr(task, key, value)
+    
+    from datetime import datetime
+    task.updated_at = datetime.utcnow()
+    
+    db.commit()
+    db.refresh(task)
+    
+    return task
+
+@app.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_task(task_id: int, db: Session = Depends(get_db)):
+    
+    task = db.query(Task).filter(Task.id == task_id).first()
+    
+    if not task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    
+    db.delete(task)
+    db.commit()
+    
+    return None
+
+@app.patch("/tasks/{task_id}/complete", response_model=TaskResponse)
+def mark_task_complete(task_id: int, db: Session = Depends(get_db)):
+    
+    task = db.query(Task).filter(Task.id == task_id).first()
+    
+    if not task:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Task not found")
+    
+    task.completed = True
+    from datetime import datetime
+    task.updated_at = datetime.utcnow()
+    
+    db.commit()
+    db.refresh(task)
+    
+    return task
